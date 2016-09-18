@@ -5,9 +5,13 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+var socket_io = require("socket.io");
+var debug = require('debug');
+
 var routes = require('./routes/index');
 
 var app = express();
+app.io = socket_io();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
