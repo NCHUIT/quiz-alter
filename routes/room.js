@@ -23,6 +23,7 @@ function room(io){
 		//When someone click button in index,
 		// this shoud be triggered.
 		//TODO: Make sure room_id is unique.
+
 		client.on('createRoom', function(data){
 			room_id = generate_id();
 			client.emit('roomID', room_id);
@@ -33,19 +34,21 @@ function room(io){
 
 		//When client opened with link provided by the room owner,
 		//  Make sure them use this to join the session.
+
 		client.on("joinRoom", function(room_id){
 			room_list.count({room_id: room_id},function(err,count){
 				if(err){ throw err; };
 				if(count > 0) {
 					client.join(room_id);
 				} else {
-					client.emit("error", "Invalid room");
+					client.emit("exception", "Invalid room");
 				}
 			});
 		});
 
 
     // Get the list of Quests, with index and title.
+
 		client.on("getQuest",function(data) {
 			client.emit("questList",
 									{
@@ -56,8 +59,6 @@ function room(io){
 									}
 								 );
 		});
-
-
     
 		client.on("setQuest",function(data){
 			room_debug("setQuest Triggerd");
@@ -65,8 +66,8 @@ function room(io){
 				room_debug("result collected" + result);
 				if(err) { throw err;};
 				if(result.length == 0) {
-					client.emit("error", "createRoom first");
-				}else{
+					client.emit("exception", "createRoom first");
+				} else {
 					room_debug("accessing data type: "+ data.type);
 					if(data.type == "index"){
 						room_debug("broadcasting to room: " + result.room_id);
@@ -76,7 +77,7 @@ function room(io){
 												quest_list[data.quest_id]["choice"]
 											 );
 						room_debug("broadcasted indexed quest");
-					}else if(data.type == "custom"){
+					} else if(data.type == "custom"){
 						client.broadcast
 									.to(result[0].room_id)
 									.emit("setQuest",
@@ -84,13 +85,34 @@ function room(io){
 											 );
 						room_debug("broadcasted custom quest");
 
-					}else {
-						client.emit("error", "Invalid Data type");
+					} else {
+						client.emit("exception", "Invalid Data type");
 					}
 				}
+			}); //close room owner check handle
+
+		}); //close setQuest event handle
+
+	  // cleanup when a host leaves.
+
+		client.on("disconnect",function(){
+			room_debug("client leaved, cleaning up.");
+
+			room_list.find({ host_id: client.id },function(err,result){
+				if(err){ throw err; };
+				if(result.length > 0){
+					client.broadcast
+								.to(result[0].room_id)
+								.emit("exception", "host leaved");
+
+					room_list.remove( { host_id: client.id } ).exec();
+					room_debug("room: " + result[0].room_id + " closed.");
+				};
 			});
 		});
-	});
+
+	}); //close connect event handle
+
 
 	function generate_id(){
 		var temp = crypto.randomBytes(20).toString("hex");
