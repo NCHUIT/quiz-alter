@@ -32,3 +32,6 @@ npm-debug.log
 # Build cache
 *.css
 *.css.map
+
+# secret key
+secret.json

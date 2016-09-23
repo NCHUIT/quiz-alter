@@ -24,6 +24,10 @@ function room(io){
     }
   });
 
+  fs.readFile('./secret.json', 'utf8', function(err,data){
+  	if(!err) { sign_key = JSON.parse(data)['sign_key']; }
+  	else { throw err; }
+  });
 
 	io.on('connect',function(client){
 
