@@ -1,7 +1,11 @@
 extends layout
 
-block content
-  h1= title
-  p Welcome to room: #{title}
+block head_extra
+  script.
+    window.room_id = "#{room_id}";
 
-  include include/roomjs
+block content
+  h1= "Test Page"
+  p Welcome to room: #{room_id}
+
+  include include/room.debugjs.pug

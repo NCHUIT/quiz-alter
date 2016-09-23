@@ -7,7 +7,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get("/:room_code", function(req, res, next){
-	res.render("room",  { title: req.params["room_code"] });
+	res.render("room",  { room_id: req.params["room_code"] });
 });
 
 module.exports = router;
