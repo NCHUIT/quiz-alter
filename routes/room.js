@@ -7,6 +7,14 @@ function room(io){
 
 	var quest_list = {};
 
+	var exception = {
+						not_the_owner: "create room first",
+							 not_a_room: "invalid room_id",
+						 invalid_type: "invalid type",
+		insufficient_argument: "insufficient argument",
+								host_gone: "host gone"
+	};
+
 	fs.readFile('./public/data/quiz.json', 'utf8', function (err, data) {
     if (!err) {
       quest_list = JSON.parse(data);
@@ -41,7 +49,7 @@ function room(io){
 				if(count > 0) {
 					client.join(room_id);
 				} else {
-					client.emit("exception", "Invalid room");
+					client.emit("exception", exception.not_a_room);
 				}
 			});
 		});
@@ -62,11 +70,9 @@ function room(io){
     
 		client.on("setQuest",function(data){
 			room_debug("setQuest Triggerd");
-			room_list.where({ host_id: client.id }).exec( function(err, result){
-				room_debug("result collected" + result);
-				if(err) { throw err;};
-				if(result.length == 0) {
-					client.emit("exception", "createRoom first");
+			check_room_owned_by(client.id, function(is_owned, result){
+				if( !is_owned ) {
+					client.emit("exception", exception.not_the_owner);
 				} else {
 					room_debug("accessing data type: "+ data.type);
 					if(data.type == "index"){
@@ -86,7 +92,7 @@ function room(io){
 						room_debug("broadcasted custom quest");
 
 					} else {
-						client.emit("exception", "Invalid Data type");
+						client.emit("exception", exception.invalid_type);
 					}
 				}
 			}); //close room owner check handle
@@ -103,7 +109,7 @@ function room(io){
 				if(result.length > 0){
 					client.broadcast
 								.to(result[0].room_id)
-								.emit("exception", "host leaved");
+								.emit("exception", exception.host_gone);
 
 					room_list.remove( { host_id: client.id } ).exec();
 					room_debug("room: " + result[0].room_id + " closed.");
@@ -117,6 +123,13 @@ function room(io){
 	function generate_id(){
 		var temp = crypto.randomBytes(20).toString("hex");
 		return temp;
+	};
+
+	function check_room_owned_by( client_id, callback ){
+		room_list.find({ host_id: client_id }, function(err, result){
+			if(err) { throw err;};
+			callback( !(result.length == 0), result);
+		});
 	};
 
 };

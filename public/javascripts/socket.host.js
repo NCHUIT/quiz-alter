@@ -1,8 +1,11 @@
 handle.on('roomID', plainLogger);
 handle.on('roomID',function(room_id){
+  window.room_id = room_id;
+
   line = document.createElement("p");
   line.innerHTML = "You're joined room <b>" + room_id + "</b>";
   document.body.appendChild(line);
+
   link = document.createElement("a");
   link.baseURI = location.host;
   link.href = "/" + room_id;
