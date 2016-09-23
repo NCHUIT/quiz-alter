@@ -6,6 +6,7 @@ function room(io){
 	var room_debug = require("debug")("room");
 
 	var quest_list = {};
+	var sign_key = "";
 
 	var exception = {
 						not_the_owner: "create room first",
@@ -135,6 +136,22 @@ function room(io){
 			callback( !(result.length == 0), result);
 		});
 	};
+
+	function signature(string){
+		return crypto.createHmac('sha256',sign_key)
+								 .update(JSON.stringify(string))
+								 .digest('hex');
+	};
+
+	function signpack( client_id, room_id ){
+		return {
+			'info': {
+				'client_id': client_id,
+				'room_id': room_id
+			},
+			'signature': signature(client_id + ":" + room_id)
+		}
+	}
 
 };
 
