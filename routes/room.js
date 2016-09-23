@@ -32,19 +32,39 @@ function room(io){
 
 	io.on('connect',function(client){
 
-		//Handle room creation
-		//When someone click button in index,
+		// Handle room creation
+		// When someone click button in index,
 		// this shoud be triggered.
-		//TODO: Make sure room_id is unique.
+		// Also, generated a hash string
+		//        for reclaiming ownership
+		//        when disconnection occured.
+		// TODO: Make sure room_id is unique.
 
 		client.on('createRoom', function(data){
 			room_id = generate_id();
-			client.emit('roomID', room_id);
+
+			client.emit('roomCreated', signpack(client.id, room_id));
+
 			client.join(room_id);
 			new room_list({room_id: room_id, host_id: client.id}).save();
 		});
 
+		// Reclaiming room ownership when disconnected
 
+		client.on('claimRoom',function(data){
+			if(data['info'] && data['signature'] && data['info']['client_id'] && data['info']['room_id']){
+				if(signature(data['info']) == data['signature']){
+					room_list.update({ room_id: data['info']['room_id'] },
+													 { "$inc": { host_id: client.id } },
+													 { upsert: true },
+													 function(err){ throw err; }
+													)
+					client.emit('roomCreated', signpack(client.id, data['info']['room_id']));
+				}
+			} else {
+				client.emit('exception', exception.insufficient_argument);
+			}
+		});
 		//When client opened with link provided by the room owner,
 		//  Make sure them use this to join the session.
 

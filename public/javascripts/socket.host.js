@@ -1,6 +1,8 @@
-handle.on('roomID', plainLogger);
-handle.on('roomID',function(room_id){
-  window.room_id = room_id;
+handle.on('roomCreated', plainLogger);
+handle.on('roomCreated',function(data){
+  window.room_id = data['info']['room_id'];
+
+  window.localStorage[room_id] = JSON.stringify(data);
 
   line = document.createElement("p");
   line.innerHTML = "You're joined room <b>" + room_id + "</b>";
