@@ -43,10 +43,9 @@ function room(io){
     client.on('createRoom', function(data){
       room_id = generate_id();
 
-      client.emit('roomCreated', signpack(client.id, room_id));
-
-      client.join(room_id);
       new room_list({room_id: room_id, host_id: client.id}).save();
+      client.emit('roomCreated', signpack(client.id, room_id));
+      client.join(room_id);
     });
 
     // Reclaiming room ownership when disconnected
@@ -54,11 +53,12 @@ function room(io){
     client.on('claimRoom',function(data){
       if(data['info'] && data['signature'] && data['info']['client_id'] && data['info']['room_id']){
         if(signature(data['info']) == data['signature']){
-          room_list.update({ room_id: data['info']['room_id'] },
-                           { "$inc": { host_id: client.id } },
-                           { upsert: true },
-                           function(err){ throw err; }
-                          )
+
+          new room_list({
+          	room_id: data['info']['room_id'],
+          	host_id: client.id
+          }).save();
+
           client.emit('roomCreated', signpack(client.id, data['info']['room_id']));
         }
       } else {
