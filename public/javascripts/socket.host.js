@@ -5,20 +5,21 @@ handle.on('roomCreated',function(data){
   window.localStorage[room_id] = JSON.stringify(data);
 
   line = document.createElement("p");
-  line.innerHTML = "You're joined room <b>" + room_id + "</b>";
+  line.innerHTML = "You've created room <b>" + room_id + "</b>";
   document.body.appendChild(line);
 
   link = document.createElement("a");
   link.baseURI = location.host;
   link.href = "/" + room_id;
-  link.innerHTML = room_id;
   container = document.createElement("p");
-  container.innerHTML = "Join me with this "
-  container.appendChild(link);
-  container.innerHTML += " buddy.";
-  document.body.appendChild(container);
+  container.innerText = "Join me with this: ";
+  $("<br />").appendTo(container);
+  $(container).append(link);
+  $('body').append(container);
+
+  new QRCode(link, link.href);
 });
 
 handle.on("questList", plainLogger);
 
-handle.emit("createRoom");
+$( function(){ handle.emit("createRoom");} );
