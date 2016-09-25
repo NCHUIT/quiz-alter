@@ -137,14 +137,34 @@ function room(io){
       });
     });
 
+    //stop signal will emitted by host.
+    //Server only do the job with proxying
+    //and write the time into database
+
+    client.on("stop",function(data){
+      check_room_owned_by(client.id, function(is_owned, result){
+        if(!is_owned){
+          client.emit("exception", exception.not_the_owner);
+        } else {
+          client.broadcast
+                .to(result[0].room_id)
+                .emit("stop", data);
+
+          //Collecting data from room_stat
+
+          client.emit("answerStat");
+        }
+      });
+    });
+
+
     // handle client answers
 
-    client.on('answer',function(data){ });
-
-    // will broadcast stop to all clients
-    // and send statisitics to host
-
-    client.on('stop',function(data){ });
+    client.on('answer',function(data){
+      //check the quest id
+      //choice in range
+      //in the time range
+    });
 
     // cleanup when a host leaves.
 
