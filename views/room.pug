@@ -7,5 +7,7 @@ block head_extra
 block content
   h1= "Test Page"
   p Welcome to room: #{room_id}
-
-  include include/room.socketjs.pug
+  
+  script(src="/socket.io/socket.io.js")
+  script(src="/javascripts/socket.config.js")
+  script(src="/javascripts/socket.room.js")
